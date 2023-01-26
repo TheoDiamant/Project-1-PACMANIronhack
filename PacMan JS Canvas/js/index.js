@@ -1,11 +1,18 @@
+document.getElementById("play").addEventListener('click', (event) => {
+
+
 const myGameArea = {
   canvas: document.createElement("canvas"),
   components: [],
   obstacleComponents: [],
   yellowDots: [],
   cornerBonus: [],
-  enemy: [],
-  position :[],
+  enemy1: [],
+  enemy2: [],
+  enemy3: [],
+  isGameOver : false,
+  isGamePaused: false,
+  isWinner: false,
   start: function () {
     this.canvas.width = 500;
     this.canvas.height = 500;
@@ -14,13 +21,17 @@ const myGameArea = {
     gameBoard.appendChild(this.canvas);
   },
   update: function () {
-
     const ctx = myGameArea.context
     ctx.clearRect(0, 0, myGameArea.canvas.width, myGameArea.canvas.height)
+
+    if (!myGameArea.isGameOver) {
 
     myGameArea.obstacleComponents.forEach((e) => {
       e.render()
     })
+
+    document.getElementById("main-menu").style.display = "none"
+   
 
     myGameArea.cornerBonus.forEach((e) => {
       if (e.checkCollision(pacman)) {
@@ -40,16 +51,39 @@ const myGameArea = {
 
         let indexBonus = myGameArea.cornerBonus.indexOf(e)
         myGameArea.cornerBonus.splice(indexBonus, 1)
+       
       }
       e.render()
     })
 
+    if(myGameArea.yellowDots.length <= 0 && myGameArea.cornerBonus.length <= 0){
+      enemy.speed = 0
+        enemy2.speed = 0
+        enemy3.speed = 0
+    myGameArea.isWinner = true
+    ctx.clearRect(0, 0, myGameArea.canvas.width, myGameArea.canvas.height)
+    document.getElementById("winner").style.display = "flex"
+  }
+
     //////INDEXOF FIND THE DOTS THAT HAS BEEN EATEN AND SPLICE REMOVE IT
     myGameArea.yellowDots.forEach((e) => {
       if (e.checkCollision(pacman)) {
+       /* if(enemy.speed < 3 && myGameArea.yellowDots.length < 100){
+          enemy.speed += 0.1
+        } 
+        if(enemy2.speed < 1.5 && myGameArea.yellowDots.length < 80){
+          enemy2.speed += 0.1
+        } 
+        if(enemy3.speed < 1.5 && myGameArea.yellowDots.length < 40){
+          enemy3.speed += 0.1
+        } */
+    
+        score += 1
+
         let indexDots = myGameArea.yellowDots.indexOf(e)
         myGameArea.yellowDots.splice(indexDots, 1)
-      }
+      
+    }
       e.render()
     })
 
@@ -57,44 +91,76 @@ const myGameArea = {
       e.render()
     })
 
+    myGameArea.enemy1.forEach((e) => {
+        
+        if(e.checkCollision(pacman)){
+          let deathSong = new Audio()
+          deathSong.src = "/song/Death.mp3"
+          deathSong.play()
 
-    let collisionDetection = myGameArea.obstacleComponents.forEach(e => {
-      pacman.checkCollision(e)
+          myGameArea.isGameOver = true
+          ctx.clearRect(0, 0, myGameArea.canvas.width, myGameArea.canvas.height)
+          document.getElementById("game-over").style.display = "flex"
+      }
+        e.move()
+        e.render()
+
     })
 
-    myGameArea.enemy.forEach((e) => {
-      e.move()
-      e.render()
-    })
+    myGameArea.enemy2.forEach((e) => {
+      if(e.checkCollision(pacman)){
+         let deathSong = new Audio()
+          deathSong.src = "/song/Death.mp3"
+        deathSong.play()
+        myGameArea.isGameOver = true
+        ctx.clearRect(0, 0, myGameArea.canvas.width, myGameArea.canvas.height)
+        document.getElementById("game-over").style.display = "flex"
+    }
+       e.move()
+       e.render()
+ 
+     })
+    } else {
+      ctx.clearRect(0, 0, myGameArea.canvas.width, myGameArea.canvas.height)
+  }
 
+  let collisionDetection = myGameArea.obstacleComponents.forEach(e => {
+    pacman.checkCollision(e)
+  })
     //////////LINEAR MOVEMENT FOR THE PLAYER//////////////////
     if (playerMovesDown) {
       pacman.y += pacman.speed;
-      if (pacman.y >= myGameArea.canvas.height - pacman.h || collisionDetection) {
+      if (pacman.y >= myGameArea.canvas.height - pacman.h) {
           pacman.y -= pacman.speed
       }
     } else if (playerMovesUp) {
        pacman.y -= pacman.speed;
       
-       if (pacman.y < 0 || collisionDetection) {
+       if (pacman.y < 0 ) {
         pacman.y += pacman.speed
     }
     } else if (playerMovesLeft) {
       pacman.x -= pacman.speed;
       
-      if (pacman.x < 0 || collisionDetection) {
+      if (pacman.x < 0 ) {
         pacman.x += pacman.speed
     }
 
     } else if (playerMovesRight) {
       pacman.x += pacman.speed;
-      if (pacman.x >= myGameArea.canvas.width - pacman.w || collisionDetection) {
+      if (pacman.x >= myGameArea.canvas.width - pacman.w ) {
         pacman.x -= pacman.speed
     }
 
     }
 
-
+    myGameArea.context.font = "20px Verdana";
+    myGameArea.context.fillStyle = "yellow";
+    myGameArea.context.fillText(
+      `Score: ${score}`,
+      myGameArea.canvas.width / 10,
+      40
+    );
 
   }
 }
@@ -110,8 +176,10 @@ class Component {
 
   render() {
     const ctx = myGameArea.context
+
     ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.w, this.h);
+
   }
 
   checkCollision(otherComponent) {
@@ -131,15 +199,24 @@ class Component {
 
 // CLASS OF PACMAN AND MOVEMENT OF PACMAN
 class Pacman extends Component {
-  constructor(x, y, w, h, color) {
+  constructor(x, y, w, h, color, img) {
     super(x, y, w, h, color)
     this.x = x
     this.y = y
     this.w = w
     this.h = h
+    this.img = new Image()
+    this.img.src = "pacman1.png"
     this.color = "red"
     this.speed = 0;
   }
+
+  render() {
+    const ctx = myGameArea.context
+    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+
+  }
+
   moveLeft() {
 
     this.x -= 10
@@ -185,64 +262,233 @@ class Pacman extends Component {
 let pacman = new Pacman(225, 225, 50, 50)
 myGameArea.components.push(pacman)
 
-class Enemy extends Component{
-  constructor(x, y, w, h, color){
-  super((x, y, w, h, color)) 
-    this.x = x
-    this.y = y
-    this.w = w
-    this.h = h
-    this.color = "pink"
+class Enemy1 { 
+  constructor(x, y, w, h, color, img) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.color = color
     this.speed = 1
-  
+    this.img = new Image()
+    this.img.src = "enemy1.png"
+    this.directions = ["up", "right", "down", "left"];
+    this.currentDirectionIndex = 0
+    this.position = [
+      {x: 0, y: 0}, // top left
+      {x: 250, y: 0}, // middle top
+      {x: 500, y: 0}, // top right
+      {x: 0, y: 250}, // middle left
+      {x: 250, y: 250}, // middle
+      {x: 500, y: 250}, // middle right
+      {x: 0, y: 500}, // bottom left
+      {x: 250, y: 500}, // bottom middle
+      {x: 500, y: 500} // bottom right
+    ]
+  }
+
+  render() {
+    const ctx = myGameArea.context
+    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+
+  }
+
+  setDirection(direction) {
+    this.currentDirectionIndex = this.directions.indexOf(direction);
+   // const randomIndex = Math.floor(Math.random() * this.position.length)
+    // const randomPosition = this.position[randomIndex]
+    // this.x = randomPosition.x
+    // this.y = randomPosition.y
   }
 
   move() {
-    let randomNum = Math.floor(Math.random() * 4);
-    let intervalId = setInterval(() => {
-      if (randomNum === 0) {
-        ////moveUP////
-        this.y -= this.speed;
-        if (this.y < 0 || enemy.checkCollision(square1) || enemy.checkCollision(square2)
-        || enemy.checkCollision(square3) || enemy.checkCollision(square4)) {
-          clearInterval(intervalId);
-          this.move();
-        }
-      } else if (randomNum === 1) {
-        ////moveDOWN////
-        this.y += this.speed;
-        if (this.y > myGameArea.canvas.height - this.h || enemy.checkCollision(square1) || enemy.checkCollision(square2)
-        || enemy.checkCollision(square3) || enemy.checkCollision(square4)) {
-          clearInterval(intervalId);
-          this.move();
-        }
+    if (this.directions[this.currentDirectionIndex] === "up") {
+      this.y -= this.speed;
+      if (this.y < 6) {
+        this.setDirection("right")
       }
-    }, 2000);
-     /* } else if (randomNum === 2) {
-        ////moveLEFT////
-        this.x -= this.speed;
-        if (this.x < 0 || enemy.checkCollision(square1) || enemy.checkCollision(square2)
-        || enemy.checkCollision(square3) || enemy.checkCollision(square4)) {
-          clearInterval(intervalId);
-          this.move();
-        }
-      } else {
-        this.x += this.speed;
-        ////moveRight////
-        if (this.x > myGameArea.canvas.width - this.w || enemy.checkCollision(square1) || enemy.checkCollision(square2)
-        || enemy.checkCollision(square3) || enemy.checkCollision(square4)) {
-          clearInterval(intervalId);
-          this.move();
-        }
-      }*/
-  
+    } else if (this.directions[this.currentDirectionIndex] === "down") {
+      this.y += this.speed;
+
+      if (this.y >= myGameArea.canvas.height - this.h - 6) {
+        this.setDirection("left");
+      }
+    } else if (this.directions[this.currentDirectionIndex] === "left") {
+      this.x -= this.speed;
+      if (this.x < 6) {
+       this.setDirection("up")
+      }
+    } else if (this.directions[this.currentDirectionIndex] === "right") {
+      this.x += this.speed;
+      if (this.x >= myGameArea.canvas.width - this.w - 6 ) {
+        this.setDirection("down");
+      }
+    }
   }
+
+  checkCollision(otherComponent) {
+    if (
+      this.x < otherComponent.x + otherComponent.w &&
+      this.x + this.w > otherComponent.x &&
+      this.y < otherComponent.y + otherComponent.h &&
+      this.y + this.h > otherComponent.y
+    ) {
+      return true
+    } else {
+      return false;
+    }
+  }
+
 }
 
+const enemy = new Enemy1(6, 6, 50, 50, "pink")
+myGameArea.enemy1.push(enemy)
 
-const enemy = new Enemy(5, 5, 50, 50, "pink")
-myGameArea.enemy.push(enemy)
+class Enemy2 { 
+  constructor(x, y, w, h, color, img) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.color = color
+    this.speed = 1
+    this.img = new Image()
+    this.img.src = "enemy2.png"
+    this.directions = ["up", "right", "down", "left"];
+    this.currentDirectionIndex = 0
+    this.position = [
+      {x: 0, y: 0}, // top left
+      {x: 250, y: 0}, // middle top
+      {x: 500, y: 0}, // top right
+      {x: 0, y: 250}, // middle left
+      {x: 250, y: 250}, // middle
+      {x: 500, y: 250}, // middle right
+      {x: 0, y: 500}, // bottom left
+      {x: 250, y: 500}, // bottom middle
+      {x: 500, y: 500} // bottom right
+    ]
+  }
 
+  render() {
+    const ctx = myGameArea.context
+    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+
+  }
+
+  setDirection(direction) {
+    this.currentDirectionIndex = this.directions.indexOf(direction);
+   // const randomIndex = Math.floor(Math.random() * this.position.length)
+    // const randomPosition = this.position[randomIndex]
+    // this.x = randomPosition.x
+    // this.y = randomPosition.y
+  }
+
+  move() {
+    if (this.directions[this.currentDirectionIndex] === "up") {
+      this.y -= this.speed;
+      if (this.y < 6) {
+        this.setDirection("down")
+      }
+    } else if (this.directions[this.currentDirectionIndex] === "down") {
+      this.y += this.speed;
+
+      if (this.y >= myGameArea.canvas.height - this.h - 6) {
+        this.setDirection("up");
+      }
+    }
+  }
+
+  checkCollision(otherComponent) {
+    if (
+      this.x < otherComponent.x + otherComponent.w &&
+      this.x + this.w > otherComponent.x &&
+      this.y < otherComponent.y + otherComponent.h &&
+      this.y + this.h > otherComponent.y
+    ) {
+      return true
+    } else {
+      return false;
+    }
+  }
+
+}
+
+const enemy2 = new Enemy2(225, 5, 50, 50, "blue")
+myGameArea.enemy2.push(enemy2)
+
+class Enemy3 { 
+  constructor(x, y, w, h, color, img) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.color = color
+    this.speed = 1
+    this.img = new Image()
+    this.img.src = "enemy3.png"
+    this.directions = ["right", "left"];
+    this.currentDirectionIndex = 0
+    this.position = [
+      {x: 0, y: 0}, // top left
+      {x: 250, y: 0}, // middle top
+      {x: 500, y: 0}, // top right
+      {x: 0, y: 250}, // middle left
+      {x: 250, y: 250}, // middle
+      {x: 500, y: 250}, // middle right
+      {x: 0, y: 500}, // bottom left
+      {x: 250, y: 500}, // bottom middle
+      {x: 500, y: 500} // bottom right
+    ]
+  }
+
+  render() {
+    const ctx = myGameArea.context
+    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+
+  }
+
+  setDirection(direction) {
+    this.currentDirectionIndex = this.directions.indexOf(direction);
+   // const randomIndex = Math.floor(Math.random() * this.position.length)
+    // const randomPosition = this.position[randomIndex]
+    // this.x = randomPosition.x
+    // this.y = randomPosition.y
+  }
+
+   move() {
+    if (this.directions[this.currentDirectionIndex] === "right") {
+      this.x += this.speed;
+      if (this.x >= myGameArea.canvas.width - this.w - 6 ) {
+        this.setDirection("left");
+      }
+    } else if (this.directions[this.currentDirectionIndex] === "left") {
+      this.x -= this.speed;
+      if (this.x < 6) {
+       this.setDirection("right")
+      }
+    } else if (this.directions[this.currentDirectionIndex] === "right") {
+      this.x += this.speed;
+    
+    }
+  }
+
+  checkCollision(otherComponent) {
+    if (
+      this.x < otherComponent.x + otherComponent.w &&
+      this.x + this.w > otherComponent.x &&
+      this.y < otherComponent.y + otherComponent.h &&
+      this.y + this.h > otherComponent.y
+    ) {
+      return true
+    } else {
+      return false;
+    }
+  }
+
+}
+
+const enemy3 = new Enemy3(440, 225, 50, 50, "purple")
+myGameArea.enemy2.push(enemy3)
 
 
 // CLASS des carrés sur la map
@@ -254,6 +500,14 @@ class Square extends Component {
     this.w = w
     this.h = h
     this.color = "blue"
+  }
+  render(){
+    const ctx = myGameArea.context
+    ctx.lineWidth = 5
+    ctx.strokeStyle = this.color;
+
+    ctx.strokeRect(this.x, this.y, this.w, this.h);
+
   }
 }
 
@@ -274,13 +528,21 @@ myGameArea.obstacleComponents.push(square4)
 
 // CLASS des POINTS JAUNES sur la map
 class Dot extends Component {
-  constructor(x, y, w, h, color) {
+  constructor(x, y, w, h, color, radius) {
     super(x, y, w, h, color)
     this.x = x
     this.y = y
-    this.w = w
-    this.h = h
+    this.radius = 4
     this.color = "yellow"
+  }
+
+  render(){
+    const ctx = myGameArea.context
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'white'; // !
+    ctx.fill();
+    ctx.closePath();
   }
 }
 
@@ -294,7 +556,7 @@ for (let i = 0; i < 20; i++) {
 let leftY = 10
 for (let i = 0; i < 21; i++) {
   leftY += 21.3
-  myGameArea.yellowDots.push(new Dot(22, leftY, 8, 8))
+  myGameArea.yellowDots.push(new Dot(24, leftY, 8, 8))
 }
 
 let downX = 0
@@ -306,13 +568,13 @@ for (let i = 0; i < 20; i++) {
 let rightY = 8
 for (let i = 0; i < 21; i++) {
   rightY += 21.7
-  myGameArea.yellowDots.push(new Dot(464, rightY, 8, 8))
+  myGameArea.yellowDots.push(new Dot(470, rightY, 8, 8))
 }
 
-let middleX = 0
+let middleX = 1
 for (let i = 0; i < 21; i++) {
   middleX += 22
-  myGameArea.yellowDots.push(new Dot(middleX, 244, 8, 8))
+  myGameArea.yellowDots.push(new Dot(middleX, 246, 8, 8))
 }
 
 let middleY = 8
@@ -321,13 +583,35 @@ for (let i = 0; i < 20; i++) {
   myGameArea.yellowDots.push(new Dot(246.5, middleY, 8, 8))
 }
 
-let cornerTopleft = new Dot(20, 20, 30, 30)
+
+
+class CornerDot extends Component {
+  constructor(x, y, w, h, color, radius) {
+    super(x, y, w, h, color)
+    this.x = x
+    this.y = y
+    this.radius = 12
+    this.color = "yellow"
+  }
+
+  render(){
+    const ctx = myGameArea.context
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'white'; // !
+    ctx.fill();
+    ctx.closePath();
+  }
+}
+
+
+let cornerTopleft = new CornerDot(25, 30, 30, 30)
 myGameArea.cornerBonus.push(cornerTopleft)
-let cornerTopRight = new Dot(445, 20, 30, 30)
+let cornerTopRight = new CornerDot(470, 30, 30, 30)
 myGameArea.cornerBonus.push(cornerTopRight)
-let cornerBottomleft = new Dot(20, 445, 30, 30)
+let cornerBottomleft = new CornerDot(20, 460, 30, 30)
 myGameArea.cornerBonus.push(cornerBottomleft)
-let cornerBottomRight = new Dot(445, 445, 30, 30)
+let cornerBottomRight = new CornerDot(468, 466, 30, 30)
 myGameArea.cornerBonus.push(cornerBottomRight)
 
 /////////// END OF THE SET UP OF THE DOT ON THE MAP/////////////////////
@@ -335,6 +619,7 @@ myGameArea.cornerBonus.push(cornerBottomRight)
 
 
 //////////////LINEARY MOVEMENT//////////////////
+
 let playerMovesDown = false;
 let playerMovesUp = false;
 let playerMovesLeft = false;
@@ -347,12 +632,14 @@ document.onkeydown = function (e) {
     case 37:
     case "ArrowLeft":
       playerMovesLeft = true;
+
       pacman.moveLeft()
 
       break;
     case 38:
     case "ArrowUp":
       playerMovesUp = true;
+
       pacman.moveUp()
 
      
@@ -360,12 +647,14 @@ document.onkeydown = function (e) {
     case 39:
     case "ArrowRight":
       playerMovesRight = true;
-      pacman.moveRight()
+
+     pacman.moveRight()
       break;
     case 40:
     case "ArrowDown":
       playerMovesDown = true;
-      pacman.moveDown()
+    
+     pacman.moveDown()
 
       break;
   }
@@ -376,3 +665,6 @@ myGameArea.start()
 setInterval(myGameArea.update, 1000 / 60);
 
 
+
+let score = 0
+})
