@@ -95,7 +95,7 @@ const myGameArea = {
         
         if(e.checkCollision(pacman)){
           let deathSong = new Audio()
-          deathSong.src = "/song/Death.mp3"
+          deathSong.src = "song/Death.mp3"
           deathSong.play()
 
           myGameArea.isGameOver = true
@@ -110,7 +110,7 @@ const myGameArea = {
     myGameArea.enemy2.forEach((e) => {
       if(e.checkCollision(pacman)){
          let deathSong = new Audio()
-          deathSong.src = "/song/Death.mp3"
+          deathSong.src = "song/Death.mp3"
         deathSong.play()
         myGameArea.isGameOver = true
         ctx.clearRect(0, 0, myGameArea.canvas.width, myGameArea.canvas.height)
