@@ -68,7 +68,7 @@ const myGameArea = {
     //////INDEXOF FIND THE DOTS THAT HAS BEEN EATEN AND SPLICE REMOVE IT
     myGameArea.yellowDots.forEach((e) => {
       if (e.checkCollision(pacman)) {
-       /* if(enemy.speed < 3 && myGameArea.yellowDots.length < 100){
+       if(enemy.speed < 3 && myGameArea.yellowDots.length < 100){
           enemy.speed += 0.1
         } 
         if(enemy2.speed < 1.5 && myGameArea.yellowDots.length < 80){
@@ -76,7 +76,7 @@ const myGameArea = {
         } 
         if(enemy3.speed < 1.5 && myGameArea.yellowDots.length < 40){
           enemy3.speed += 0.1
-        } */
+        } 
     
         score += 1
 
@@ -206,7 +206,7 @@ class Pacman extends Component {
     this.w = w
     this.h = h
     this.img = new Image()
-    this.img.src = "pacman1.png"
+    this.img.src = "images/pacman1.png"
     this.color = "red"
     this.speed = 0;
   }
@@ -271,7 +271,7 @@ class Enemy1 {
     this.color = color
     this.speed = 1
     this.img = new Image()
-    this.img.src = "enemy1.png"
+    this.img.src = "images/enemy1.png"
     this.directions = ["up", "right", "down", "left"];
     this.currentDirectionIndex = 0
     this.position = [
@@ -353,7 +353,7 @@ class Enemy2 {
     this.color = color
     this.speed = 1
     this.img = new Image()
-    this.img.src = "enemy2.png"
+    this.img.src = "images/enemy2.png"
     this.directions = ["up", "right", "down", "left"];
     this.currentDirectionIndex = 0
     this.position = [
@@ -425,7 +425,7 @@ class Enemy3 {
     this.color = color
     this.speed = 1
     this.img = new Image()
-    this.img.src = "enemy3.png"
+    this.img.src = "images/enemy3.png"
     this.directions = ["right", "left"];
     this.currentDirectionIndex = 0
     this.position = [
